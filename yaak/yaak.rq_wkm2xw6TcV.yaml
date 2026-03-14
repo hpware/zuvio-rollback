@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_wkm2xw6TcV
+createdAt: 2025-09-15T14:45:44.629095
+updatedAt: 2026-03-14T10:27:11.857379
+workspaceId: wk_a2QUX92Nso
+folderId: fl_SiwPD7rYq8
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "user_id": 3916474,
+      "accessToken": "",
+      "tab": "irs"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: b8pJiAS6r4
+method: POST
+name: CheckIsTeachingTime
+sortPriority: 0.0
+url: https://irs.zuvio.com.tw/app_v3/checkIsTeachingTime
+urlParameters: []

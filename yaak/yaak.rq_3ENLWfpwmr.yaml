@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_3ENLWfpwmr
+createdAt: 2025-09-15T14:48:10.183336
+updatedAt: 2026-03-14T10:27:51.941592
+workspaceId: wk_a2QUX92Nso
+folderId: fl_ffdus3teif
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "user_id": 3916474,
+      "accessToken": "a"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: CsKMB6DAIE
+method: POST
+name: ''
+sortPriority: 0.0
+url: https://irs.zuvio.com.tw/sso/forum
+urlParameters: []

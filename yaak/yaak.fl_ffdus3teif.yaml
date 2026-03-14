@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_ffdus3teif
+createdAt: 2025-09-15T14:49:09.389130
+updatedAt: 2025-12-15T07:40:24.336615
+workspaceId: wk_a2QUX92Nso
+folderId: null
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: SSO
+sortPriority: 4000.0

@@ -1,0 +1,31 @@
+type: http_request
+model: http_request
+id: rq_h7ZYMGEG6p
+createdAt: 2025-09-22T06:59:46.438881
+updatedAt: 2026-03-14T10:27:16.713604
+workspaceId: wk_a2QUX92Nso
+folderId: fl_JbdRW4nwC4
+authentication: {}
+authenticationType: null
+body:
+  text: |
+    {
+      "user_id": 3916474,
+      "accessToken": "",
+      "rollcall_id": 1787108,
+      "device": "WEB",
+      "lat": 25.13587249634042,
+      "lng": 121.47020801301439
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: NMvnKSZzQv
+method: POST
+name: ''
+sortPriority: 1000.0
+url: https://irs.zuvio.com.tw/app_v2/makeRollcall
+urlParameters: []

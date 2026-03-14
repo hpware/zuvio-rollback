@@ -1,0 +1,34 @@
+type: http_request
+model: http_request
+id: rq_P63VBFn2yv
+createdAt: 2025-10-13T07:15:59.999272
+updatedAt: 2026-03-14T10:27:25.072228
+workspaceId: wk_a2QUX92Nso
+folderId: fl_JbdRW4nwC4
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: ''
+sortPriority: 0.0
+url: https://irs.zuvio.com.tw/app_v2/getRollcall
+urlParameters:
+- enabled: true
+  name: accessToken
+  value: a
+  id: vp02tXYJph
+- enabled: true
+  name: course_id
+  value: '1412725'
+  id: XBHuCyEXC3
+- enabled: true
+  name: user_id
+  value: '3916474'
+  id: RRNJIb376V
+- enabled: true
+  name: ''
+  value: ''
+  id: GwTUwPuJ6N

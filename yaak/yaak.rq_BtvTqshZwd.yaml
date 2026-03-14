@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_BtvTqshZwd
+createdAt: 2025-12-15T07:20:27.377899
+updatedAt: 2026-03-14T10:26:56.714659
+workspaceId: wk_a2QUX92Nso
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+        "email": "a1@yuanhau.com",
+        "loginType": "email",
+        "password": ""
+      }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: EHeDhx2YhT
+method: POST
+name: ''
+sortPriority: 0.0
+url: https://irs.zuvio.com.tw/app_v2/login
+urlParameters: []

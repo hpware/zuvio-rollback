@@ -1,0 +1,14 @@
+type: workspace
+model: workspace
+id: wk_a2QUX92Nso
+createdAt: 2025-09-15T14:45:38.467699
+updatedAt: 2025-09-15T14:45:38.467700
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: zuvio
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0

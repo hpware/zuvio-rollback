@@ -1,0 +1,31 @@
+type: http_request
+model: http_request
+id: rq_CS3GUaSbeU
+createdAt: 2025-09-15T14:51:14.248605
+updatedAt: 2026-03-14T10:27:30.138898
+workspaceId: wk_a2QUX92Nso
+folderId: fl_SiwPD7rYq8
+authentication: {}
+authenticationType: null
+body:
+  text: ''
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: listStudentCurrentCourseAmount
+sortPriority: 1000.001
+url: https://irs.zuvio.com.tw/course/listStudentCurrentCourseAmount
+urlParameters:
+- enabled: true
+  name: user_id
+  value: '3916474'
+  id: seYzNyHvGJ
+- enabled: true
+  name: accessToken
+  value: a
+  id: nzd5bcj8HJ
+- enabled: true
+  name: ''
+  value: ''
+  id: h6sTai7Gwp
