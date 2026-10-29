@@ -7,15 +7,16 @@
 }
 
 @theme {
-  --color-bg: #f7f8fa;
+  --color-bg: #f7f5f3;
   --color-panel: #ffffff;
-  --color-panel2: #f3f4f6;
-  --color-line: #e5e7eb;
-  --color-ink: #111827;
-  --color-muted: #6b7280;
-  --color-accent: #2563eb;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
+  --color-panel2: #faf8f6;
+  --color-line: #ede9e4;
+  --color-ink: #3d3a37;
+  --color-muted: #8c8580;
+  --color-accent: #54735e;
+  --color-success: #4a8b63;
+  --color-danger: #c04848;
+  --color-warm: #c49b6a;
 }
 
 html {
@@ -29,7 +30,7 @@ body {
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgba(196, 155, 106, 0.22);
 }
 
 @keyframes rise {
@@ -44,7 +45,7 @@ body {
 }
 
 .rise {
-  animation: rise 0.3s ease-out both;
+  animation: rise 0.28s ease-out both;
 }
 
 @keyframes marker-ping {
@@ -61,14 +62,14 @@ body {
 
 .raw-json {
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
+  scrollbar-color: #dcd6cf transparent;
 }
 .raw-json::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 .raw-json::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #dcd6cf;
   border-radius: 9999px;
 }
 
@@ -85,6 +86,7 @@ input[type="number"] {
 /* ---------- leaflet ---------- */
 
 .leaflet-container {
+  border-radius: 16px;
   background: #eef1f4;
   font-family: var(--font-sans), sans-serif;
 }
@@ -93,7 +95,7 @@ input[type="number"] {
   font-size: 10px;
 }
 
-/* ---------- map marker (divIcon, no image assets) ---------- */
+/* ---------- map marker ---------- */
 
 .rollcall-marker {
   position: relative;
@@ -107,19 +109,19 @@ input[type="number"] {
   border-radius: 9999px;
 }
 .rollcall-marker__dot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   background: var(--color-accent);
-  box-shadow: 0 0 0 2px #ffffff, 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 2px #ffffff, 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 .rollcall-marker__ring {
   width: 22px;
   height: 22px;
-  border: 1.5px solid rgba(37, 99, 235, 0.5);
+  border: 1.5px solid rgba(84, 115, 94, 0.45);
 }
 .rollcall-marker__pulse {
   width: 22px;
   height: 22px;
-  border: 1.5px solid rgba(37, 99, 235, 0.4);
-  animation: marker-ping 1.9s cubic-bezier(0, 0, 0.2, 1) infinite;
+  border: 1.5px solid rgba(84, 115, 94, 0.35);
+  animation: marker-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }

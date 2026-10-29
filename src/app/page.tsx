@@ -15,7 +15,7 @@ import {
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (
-    <div className="grid h-[360px] w-full place-items-center bg-panel2">
+    <div className="grid h-[360px] w-full place-items-center rounded-2xl bg-panel2">
       <span className="text-sm text-muted">Loading map…</span>
     </div>
   ),
@@ -36,8 +36,10 @@ type ApiData = Record<string, unknown> & {
   message?: string;
 };
 
-/** Recursively collect every `rollcall_id` value in an API response. */
-function extractRollcallIds(input: unknown, found = new Set<string>()): string[] {
+function extractRollcallIds(
+  input: unknown,
+  found = new Set<string>(),
+): string[] {
   if (Array.isArray(input)) {
     input.forEach((item) => extractRollcallIds(item, found));
   } else if (input && typeof input === "object") {
@@ -79,14 +81,14 @@ function Panel({
 }) {
   return (
     <section
-      className={`rise rounded-xl border border-line bg-panel shadow-sm ${className}`}
+      className={`rise rounded-2xl border border-line bg-panel shadow-sm ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+      <header className="flex items-center justify-between gap-3 px-5 py-4">
         <h2 className="text-base font-semibold text-ink">{title}</h2>
         {aside}
       </header>
-      <div className="space-y-4 p-5">{children}</div>
+      <div className="space-y-4 px-5 pb-5">{children}</div>
     </section>
   );
 }
@@ -100,10 +102,12 @@ function StatusBanner({
 }) {
   const styles =
     kind === "success"
-      ? "border-success/30 bg-success/5 text-success"
-      : "border-danger/30 bg-danger/5 text-danger";
+      ? "bg-success/10 text-success"
+      : "bg-danger/10 text-danger";
   return (
-    <div className={`rise rounded-lg border px-4 py-3 text-sm ${styles}`}>
+    <div
+      className={`rise rounded-xl px-4 py-3 text-sm ${styles}`}
+    >
       {children}
     </div>
   );
@@ -111,7 +115,7 @@ function StatusBanner({
 
 function RawJson({ data }: { data: unknown }) {
   return (
-    <details className="group rounded-lg border border-line bg-panel2">
+    <details className="group overflow-hidden rounded-xl bg-panel2">
       <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-2.5 text-xs font-medium text-muted transition-colors hover:text-ink">
         Raw response
         <span className="transition-transform group-open:rotate-90">▸</span>
@@ -124,7 +128,7 @@ function RawJson({ data }: { data: unknown }) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-line bg-panel px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/15";
+  "w-full rounded-xl border border-line bg-panel px-3 py-2.5 text-sm text-ink outline-none transition-all placeholder:text-muted/60 hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/12";
 
 const labelClass = "mb-1.5 block text-sm font-medium text-ink";
 
@@ -314,19 +318,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-line bg-panel/90 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-line bg-panel/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <CrosshairIcon className="h-5 w-5 text-accent" />
-            <span className="text-base font-semibold text-ink">Rollcall</span>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-warm/15">
+              <CrosshairIcon className="h-4 w-4 text-warm" />
+            </div>
+            <span className="text-base font-semibold text-ink">
+              ClassCheck
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted sm:block">
-              User {userId}
+              {userId}
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-danger/40 hover:text-danger"
+              className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-danger/40 hover:text-danger"
             >
               <PowerIcon className="h-3.5 w-3.5" />
               Log out
@@ -338,7 +346,7 @@ export default function Home() {
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Panel
-            title="Courses"
+            title="Your courses"
             delay={0}
             aside={
               <button
@@ -354,13 +362,13 @@ export default function Home() {
             }
           >
             <div className="relative">
-              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
                 placeholder="Search courses…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`${inputClass} pl-9`}
+                className={`${inputClass} pl-10`}
               />
             </div>
 
@@ -381,10 +389,10 @@ export default function Home() {
                 Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="animate-pulse rounded-lg border border-line px-4 py-3"
+                    className="animate-pulse rounded-xl border border-line px-4 py-3"
                   >
-                    <div className="h-3.5 w-2/3 rounded bg-line" />
-                    <div className="mt-2 h-2.5 w-1/3 rounded bg-line" />
+                    <div className="h-3.5 w-2/3 rounded-lg bg-line" />
+                    <div className="mt-2 h-2.5 w-1/3 rounded-lg bg-line" />
                   </div>
                 ))
               ) : filteredCourses.length > 0 ? (
@@ -394,10 +402,10 @@ export default function Home() {
                     <button
                       key={course.course_id}
                       onClick={() => setCourseId(String(course.course_id))}
-                      className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
+                      className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${
                         active
-                          ? "border-accent bg-accent/5"
-                          : "border-line bg-panel hover:border-muted/50"
+                          ? "border-accent bg-accent/[0.04]"
+                          : "border-line bg-panel hover:border-accent/30 hover:shadow-sm"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -410,7 +418,7 @@ export default function Home() {
                           </p>
                         </div>
                         <span
-                          className={`h-2 w-2 shrink-0 rounded-full ${
+                          className={`h-2 w-2 shrink-0 rounded-full transition-colors ${
                             active ? "bg-accent" : "bg-line"
                           }`}
                         />
@@ -419,7 +427,7 @@ export default function Home() {
                   );
                 })
               ) : (
-                <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
+                <div className="rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
                   {courses.length === 0 && !coursesError
                     ? "No courses found."
                     : "No courses match your search."}
@@ -435,7 +443,7 @@ export default function Home() {
           </Panel>
 
           <Panel title="Get rollcall" delay={60}>
-            <div className="rounded-lg bg-panel2 px-4 py-3 text-sm">
+            <div className="rounded-xl bg-panel2 px-4 py-3 text-sm">
               {selectedCourse ? (
                 <div className="flex items-center justify-between gap-3">
                   <span className="truncate text-ink">
@@ -449,7 +457,7 @@ export default function Home() {
                 <span className="text-muted">
                   {courseId
                     ? `Using course #${courseId}`
-                    : "Select a course above, or enter a course ID below."}
+                    : "Select a course, or enter a course ID below."}
                 </span>
               )}
             </div>
@@ -468,7 +476,7 @@ export default function Home() {
             <button
               onClick={handleGetRollcall}
               disabled={!courseId || getLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-accent/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
             >
               {getLoading && <Spinner />}
               {getLoading ? "Loading…" : "Get rollcall"}
@@ -501,7 +509,7 @@ export default function Home() {
                             .getElementById("rollcall-id-input")
                             ?.focus();
                         }}
-                        className="rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10"
+                        className="rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10"
                       >
                         Use #{id}
                       </button>
@@ -521,17 +529,15 @@ export default function Home() {
             delay={120}
             className="lg:sticky lg:top-[4.5rem]"
           >
-            <div className="overflow-hidden rounded-lg border border-line">
-              <MapComponent
-                center={position}
-                zoom={15}
-                position={position}
-                onClick={handleMapClick}
-                className="h-[360px] w-full"
-              />
-            </div>
+            <MapComponent
+              center={position}
+              zoom={15}
+              position={position}
+              onClick={handleMapClick}
+              className="h-[360px] w-full"
+            />
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 pt-1">
               <p className="text-xs text-muted">
                 Click the map to set your location.
               </p>
@@ -587,7 +593,7 @@ export default function Home() {
             <button
               onClick={handleMakeRollcall}
               disabled={!rollcallId || postLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-accent/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
             >
               {postLoading && <Spinner />}
               {postLoading ? "Checking in…" : "Check in"}
