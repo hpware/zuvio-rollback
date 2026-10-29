@@ -31,6 +31,23 @@ body {
 *:focus-visible {
   outline: 2px solid var(--color-accent) !important;
   outline-offset: 2px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Keep focus rings visible even when an ancestor clips overflow/clip-path. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+[aria-busy="true"]:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 ::selection {

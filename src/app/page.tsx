@@ -103,7 +103,16 @@ function StatusBanner({
     kind === "success"
       ? "bg-success/10 text-success"
       : "bg-danger/10 text-danger";
-  return <div className={`rise px-4 py-3 text-sm ${styles}`}>{children}</div>;
+  return (
+    <div
+      className={`rise px-4 py-3 text-sm ${styles}`}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {children}
+    </div>
+  );
 }
 
 function RawJson({ data }: { data: unknown }) {
