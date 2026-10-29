@@ -53,7 +53,7 @@ function RecenterControl({ position }: { position: [number, number] }) {
       onClick={() => map.flyTo(position, Math.max(map.getZoom(), 15))}
       className="absolute right-3 top-3 z-[1000] border border-line bg-white/95 px-3 py-1.5 text-xs font-medium text-ink shadow-sm transition-colors hover:bg-panel2"
     >
-      Recenter
+      重新置中
     </button>
   );
 }

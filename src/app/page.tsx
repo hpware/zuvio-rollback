@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
-  CrosshairIcon,
   RefreshIcon,
   SearchIcon,
   PowerIcon,
@@ -16,7 +15,7 @@ const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (
     <div className="grid h-[360px] w-full place-items-center bg-panel2">
-      <span className="text-sm text-muted">Loading map…</span>
+      <span className="text-sm text-muted">地圖載入中…</span>
     </div>
   ),
 });
@@ -111,7 +110,7 @@ function RawJson({ data }: { data: unknown }) {
   return (
     <details className="group border border-line bg-panel2">
       <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-2.5 text-xs font-medium text-muted transition-colors hover:text-ink">
-        Raw response
+        原始回應
         <span className="transition-transform group-open:rotate-90">▸</span>
       </summary>
       <pre className="raw-json max-h-72 overflow-auto border-t border-line p-4 font-mono text-xs leading-relaxed text-muted">
@@ -177,10 +176,10 @@ export default function Home() {
         setCourses(data.courses || []);
       } else {
         setCourses([]);
-        setCoursesError(data.message || "Your session was rejected.");
+        setCoursesError(data.message || "登入狀態已失效。");
       }
     } catch {
-      setCoursesError("Network error while loading courses.");
+      setCoursesError("載入課程時發生網路錯誤。");
     } finally {
       setLoadingCourses(false);
     }
@@ -229,7 +228,7 @@ export default function Home() {
       const res = await fetch(`/api/getRollcall?${query}`);
       setGetResponse(await res.json());
     } catch {
-      setGetError("Network error while fetching the rollcall.");
+      setGetError("取得點名時發生網路錯誤。");
     } finally {
       setGetLoading(false);
     }
@@ -256,7 +255,7 @@ export default function Home() {
       });
       setPostResponse(await res.json());
     } catch {
-      setPostError("Network error while checking in.");
+      setPostError("簽到時發生網路錯誤。");
     } finally {
       setPostLoading(false);
     }
@@ -305,7 +304,7 @@ export default function Home() {
   if (!ready) {
     return (
       <div className="grid min-h-screen place-items-center">
-        <span className="text-sm text-muted">Loading…</span>
+        <span className="text-sm text-muted">載入中…</span>
       </div>
     );
   }
@@ -314,10 +313,7 @@ export default function Home() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b border-line bg-panel/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <CrosshairIcon className="h-5 w-5 text-accent" />
-            <span className="text-base font-semibold text-ink">Rollcall</span>
-          </div>
+          <span className="text-base font-semibold text-ink">點名小幫手</span>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted sm:block">
               {userId}
@@ -327,7 +323,7 @@ export default function Home() {
               className="flex items-center gap-1.5 border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-danger/40 hover:text-danger"
             >
               <PowerIcon className="h-3.5 w-3.5" />
-              Log out
+              登出
             </button>
           </div>
         </div>
@@ -336,7 +332,7 @@ export default function Home() {
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Panel
-            title="Your courses"
+            title="您的課程"
             delay={0}
             aside={
               <button
@@ -347,7 +343,7 @@ export default function Home() {
                 <RefreshIcon
                   className={`h-4 w-4 ${loadingCourses ? "animate-spin" : ""}`}
                 />
-                Refresh
+                重新整理
               </button>
             }
           >
@@ -355,7 +351,7 @@ export default function Home() {
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
-                placeholder="Search courses…"
+                placeholder="搜尋課程…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`${inputClass} pl-9`}
@@ -364,12 +360,12 @@ export default function Home() {
 
             {coursesError && (
               <StatusBanner kind="error">
-                <p>Couldn&apos;t load courses — {coursesError}</p>
+                <p>無法載入課程 — {coursesError}</p>
                 <button
                   onClick={() => router.replace("/login")}
                   className="mt-1 underline underline-offset-2 transition-colors hover:text-ink"
                 >
-                  Back to login
+                  回登入頁面
                 </button>
               </StatusBanner>
             )}
@@ -381,8 +377,8 @@ export default function Home() {
                     key={i}
                     className="animate-pulse border border-line px-4 py-3"
                   >
-                    <div className="h-3.5 w-2/3 rounded bg-line" />
-                    <div className="mt-2 h-2.5 w-1/3 rounded bg-line" />
+                    <div className="h-3.5 w-2/3 bg-line" />
+                    <div className="mt-2 h-2.5 w-1/3 bg-line" />
                   </div>
                 ))
               ) : filteredCourses.length > 0 ? (
@@ -404,7 +400,7 @@ export default function Home() {
                             {course.course_name}
                           </p>
                           <p className="mt-0.5 truncate text-xs text-muted">
-                            {course.instructor_name} · ID {course.course_id}
+                            {course.instructor_name} · 編號 {course.course_id}
                           </p>
                         </div>
                         <span
@@ -419,20 +415,20 @@ export default function Home() {
               ) : (
                 <div className="border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
                   {courses.length === 0 && !coursesError
-                    ? "No courses found."
-                    : "No courses match your search."}
+                    ? "沒有找到課程。"
+                    : "沒有符合搜尋的課程。"}
                 </div>
               )}
             </div>
 
             {!loadingCourses && courses.length > 0 && (
               <p className="text-xs text-muted">
-                {filteredCourses.length} of {courses.length} courses
+                共 {courses.length} 門課程，顯示 {filteredCourses.length} 門
               </p>
             )}
           </Panel>
 
-          <Panel title="Fetch rollcall" delay={60}>
+          <Panel title="取得點名" delay={60}>
             <div className="border border-line bg-panel2 px-4 py-3 text-sm">
               {selectedCourse ? (
                 <div className="flex items-center justify-between gap-3">
@@ -446,19 +442,19 @@ export default function Home() {
               ) : (
                 <span className="text-muted">
                   {courseId
-                    ? `Using course #${courseId}`
-                    : "Select a course, or enter a course ID below."}
+                    ? `使用課程編號 ${courseId}`
+                    : "請先選擇課程，或在下方輸入課程編號。"}
                 </span>
               )}
             </div>
 
             <label className="block">
-              <span className={labelClass}>Course ID</span>
+              <span className={labelClass}>課程編號</span>
               <input
                 type="text"
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                placeholder="e.g. 1412725"
+                placeholder="例如：1412725"
                 className={inputClass}
               />
             </label>
@@ -469,7 +465,7 @@ export default function Home() {
               className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {getLoading && <Spinner />}
-              {getLoading ? "Fetching…" : "Fetch rollcall"}
+              {getLoading ? "擷取中…" : "取得點名"}
             </button>
 
             {getError && <StatusBanner kind="error">{getError}</StatusBanner>}
@@ -478,13 +474,13 @@ export default function Home() {
               <>
                 {getResponse.status === true ? (
                   <StatusBanner kind="success">
-                    Active rollcall found.
+                    找到進行中的點名。
                   </StatusBanner>
                 ) : (
                   <StatusBanner kind="error">
                     {typeof getResponse.message === "string"
                       ? getResponse.message
-                      : "No active rollcall for this course."}
+                      : "這門課程目前沒有進行中的點名。"}
                   </StatusBanner>
                 )}
 
@@ -501,7 +497,7 @@ export default function Home() {
                         }}
                         className="border border-accent/30 bg-accent/5 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10"
                       >
-                        Use #{id}
+                        使用 #{id}
                       </button>
                     ))}
                   </div>
@@ -515,7 +511,7 @@ export default function Home() {
 
         <div className="lg:col-span-3">
           <Panel
-            title="Make rollcall"
+            title="進行點名"
             delay={120}
             className="lg:sticky lg:top-[4.5rem]"
           >
@@ -528,9 +524,7 @@ export default function Home() {
             />
 
             <div className="flex items-center justify-between gap-3 pt-1">
-              <p className="text-xs text-muted">
-                Click the map to set your location.
-              </p>
+              <p className="text-xs text-muted">點擊地圖設定您的位置。</p>
               <button
                 onClick={copyCoords}
                 className="flex shrink-0 items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent"
@@ -540,13 +534,13 @@ export default function Home() {
                 ) : (
                   <CopyIcon className="h-3.5 w-3.5" />
                 )}
-                {copied ? "Copied" : "Copy"}
+                {copied ? "已複製" : "複製"}
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className={labelClass}>Latitude</span>
+                <span className={labelClass}>緯度</span>
                 <input
                   type="text"
                   inputMode="decimal"
@@ -556,7 +550,7 @@ export default function Home() {
                 />
               </label>
               <label className="block">
-                <span className={labelClass}>Longitude</span>
+                <span className={labelClass}>經度</span>
                 <input
                   type="text"
                   inputMode="decimal"
@@ -568,14 +562,14 @@ export default function Home() {
             </div>
 
             <label className="block">
-              <span className={labelClass}>Rollcall ID</span>
+              <span className={labelClass}>點名編號</span>
               <input
                 id="rollcall-id-input"
                 type="text"
                 inputMode="numeric"
                 value={rollcallId}
                 onChange={(e) => setRollcallId(e.target.value)}
-                placeholder="e.g. 2048265"
+                placeholder="例如：2048265"
                 className={inputClass}
               />
             </label>
@@ -586,7 +580,7 @@ export default function Home() {
               className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {postLoading && <Spinner />}
-              {postLoading ? "Checking in…" : "Check in"}
+              {postLoading ? "簽到中…" : "簽到"}
             </button>
 
             {postError && <StatusBanner kind="error">{postError}</StatusBanner>}
@@ -595,13 +589,13 @@ export default function Home() {
               <>
                 {postResponse.status === true ? (
                   <StatusBanner kind="success">
-                    Check-in successful
+                    簽到成功
                     {typeof postResponse.message === "string" &&
                       ` — ${postResponse.message}`}
                   </StatusBanner>
                 ) : (
                   <StatusBanner kind="error">
-                    Check-in failed
+                    簽到失敗
                     {typeof postResponse.message === "string" &&
                       ` — ${postResponse.message}`}
                   </StatusBanner>

@@ -30,10 +30,10 @@ export default function Login() {
         localStorage.setItem("user", data.user);
         router.push("/");
       } else {
-        setError(data.message || "Login failed — check your credentials.");
+        setError(data.message || "登入失敗，請確認帳號密碼。");
       }
     } catch {
-      setError("Network error — please try again.");
+      setError("網路錯誤，請稍後再試。");
     } finally {
       setLoading(false);
     }
@@ -50,9 +50,9 @@ export default function Login() {
           className="space-y-4 border border-line bg-panel p-6 shadow-sm"
         >
           <div className="mb-2">
-            <h1 className="text-xl font-semibold text-ink">Sign in</h1>
+            <h1 className="text-xl font-semibold text-ink">登入</h1>
             <p className="mt-1 text-sm text-muted">
-              Sign in with your Zuvio account
+              使用您的 Zuvio 帳號登入
             </p>
           </div>
 
@@ -72,7 +72,7 @@ export default function Login() {
 
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-ink">
-              Password
+              密碼
             </span>
             <input
               type="password"
@@ -101,7 +101,7 @@ export default function Login() {
                 className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
               />
             )}
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "登入中…" : "登入"}
           </button>
         </form>
       </div>
