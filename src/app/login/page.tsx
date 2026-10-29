@@ -25,9 +25,15 @@ export default function Login() {
       const data = await res.json();
 
       if (data.status) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userID", data.userID);
-        localStorage.setItem("user", data.user);
+        try {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("userID", data.userID);
+          localStorage.setItem("user", data.user);
+        } catch {
+          setError("無法儲存登入資訊，請確認瀏覽器已啟用 localStorage。");
+          setLoading(false);
+          return;
+        }
         router.push("/");
       } else {
         setError(data.message || "登入失敗，請確認帳號密碼。");

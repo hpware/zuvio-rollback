@@ -274,9 +274,13 @@ export default function Home() {
   const handleCoordInput = (axis: "lat" | "lng", raw: string) => {
     if (axis === "lat") setLatInput(raw);
     else setLngInput(raw);
-    const lat = parseFloat(axis === "lat" ? raw : latInput);
-    const lng = parseFloat(axis === "lng" ? raw : lngInput);
+    const latRaw = (axis === "lat" ? raw : latInput).trim();
+    const lngRaw = (axis === "lng" ? raw : lngInput).trim();
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
     if (
+      latRaw !== "" &&
+      lngRaw !== "" &&
       Number.isFinite(lat) &&
       Number.isFinite(lng) &&
       Math.abs(lat) <= 90 &&
@@ -285,6 +289,19 @@ export default function Home() {
       setPosition([lat, lng]);
     }
   };
+
+  const coordsValid = useMemo(() => {
+    const lat = Number(latInput.trim());
+    const lng = Number(lngInput.trim());
+    return (
+      latInput.trim() !== "" &&
+      lngInput.trim() !== "" &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    );
+  }, [latInput, lngInput]);
 
   const copyCoords = async () => {
     try {
@@ -604,7 +621,7 @@ export default function Home() {
 
               <button
                 onClick={handleMakeRollcall}
-                disabled={!rollcallId || postLoading}
+                disabled={!rollcallId || postLoading || !coordsValid}
                 className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {postLoading && <Spinner />}

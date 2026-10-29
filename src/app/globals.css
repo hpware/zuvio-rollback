@@ -28,6 +28,11 @@ body {
   font-family: var(--font-sans), sans-serif;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
+}
+
 ::selection {
   background: rgba(196, 155, 106, 0.22);
 }
@@ -122,4 +127,15 @@ input[type="number"] {
   height: 22px;
   border: 1.5px solid rgba(37, 99, 235, 0.35);
   animation: marker-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
