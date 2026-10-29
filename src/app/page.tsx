@@ -219,14 +219,18 @@ export default function Home() {
     setGetLoading(true);
     setGetError(null);
     setGetResponse(null);
+    setPostResponse(null);
+    setPostError(null);
     try {
       const query = new URLSearchParams({
         course_id: courseId,
         user_id: creds.userID,
         accessToken: creds.token,
       });
-      const res = await fetch(`/api/getRollcall?${query}`);
-      setGetResponse(await res.json());
+      const data = await (await fetch(`/api/getRollcall?${query}`)).json();
+      setGetResponse(data);
+      const ids = extractRollcallIds(data);
+      if (ids.length > 0) setRollcallId(ids[0]);
     } catch {
       setGetError("取得點名時發生網路錯誤。");
     } finally {
@@ -499,7 +503,8 @@ export default function Home() {
               <>
                 {getResponse.status === true ? (
                   <StatusBanner kind="success">
-                    找到進行中的點名。
+                    找到進行中的點名
+                    {rollcallIds.length > 0 && ` — 編號 ${rollcallIds[0]}`}。
                   </StatusBanner>
                 ) : (
                   <StatusBanner kind="error">
@@ -507,32 +512,6 @@ export default function Home() {
                       ? getResponse.message
                       : "這門課程目前沒有進行中的點名。"}
                   </StatusBanner>
-                )}
-
-                {rollcallIds.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {rollcallIds.map((id) => {
-                      const active = rollcallId === id;
-                      return (
-                        <button
-                          key={id}
-                          onClick={() => {
-                            setRollcallId(id);
-                            document
-                              .getElementById("rollcall-id-input")
-                              ?.focus();
-                          }}
-                          className={`border px-3 py-1 text-xs font-medium transition-colors ${
-                            active
-                              ? "border-accent bg-accent text-white"
-                              : "border-accent/30 bg-accent/5 text-accent hover:bg-accent/10"
-                          }`}
-                        >
-                          使用 #{id}
-                        </button>
-                      );
-                    })}
-                  </div>
                 )}
 
                 <RawJson data={getResponse} />
@@ -597,13 +576,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 步驟 3：輸入點名編號並簽到 */}
+            {/* 步驟 3：確認點名編號並簽到 */}
             <div className="border border-line bg-panel2 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
                   3
                 </span>
-                輸入點名編號並簽到
+                確認點名編號並簽到
               </div>
 
               <label className="mb-3 block">
@@ -614,7 +593,11 @@ export default function Home() {
                   inputMode="numeric"
                   value={rollcallId}
                   onChange={(e) => setRollcallId(e.target.value)}
-                  placeholder="例如：2048265"
+                  placeholder={
+                    getResponse?.status === true
+                      ? "已取得進行中的點名編號"
+                      : "例如：2048265"
+                  }
                   className={inputClass}
                 />
               </label>
