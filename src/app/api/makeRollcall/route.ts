@@ -19,6 +19,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (accessToken === "demo") {
+      return NextResponse.json({
+        status: true,
+        message: "簽到成功",
+      });
+    }
+
     const response = await fetch(
       "https://irs.zuvio.com.tw/app_v2/makeRollcall",
       {
@@ -39,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to make rollcall" },
       { status: 500 },

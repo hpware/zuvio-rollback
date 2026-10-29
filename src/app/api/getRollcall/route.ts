@@ -13,13 +13,23 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (accessToken === "demo") {
+    return NextResponse.json({
+      status: true,
+      data: {
+        rollcall_id: "2048265",
+        rollcall_name: "Week 9 點名",
+      },
+    });
+  }
+
   try {
     const response = await fetch(
       `https://irs.zuvio.com.tw/app_v2/getRollcall?accessToken=${accessToken}&course_id=${course_id}&user_id=${user_id}`,
     );
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch rollcall" },
       { status: 500 },

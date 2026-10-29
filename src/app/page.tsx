@@ -1,10 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import {
+  RefreshIcon,
+  SearchIcon,
+  PowerIcon,
+  CopyIcon,
+  CheckIcon,
+} from "../components/icons";
 
-const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
+const MapComponent = dynamic(() => import("./MapComponent"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-[360px] w-full place-items-center bg-panel2">
+      <span className="text-sm text-muted">地圖載入中…</span>
+    </div>
+  ),
+});
+
+const DEFAULT_POSITION: [number, number] = [
+  25.13587249634042, 121.47020801301439,
+];
 
 interface Course {
   course_id: string;
@@ -12,275 +35,633 @@ interface Course {
   instructor_name: string;
 }
 
+type ApiData = Record<string, unknown> & {
+  status?: boolean;
+  message?: string;
+};
+
+function extractRollcallIds(
+  input: unknown,
+  found = new Set<string>(),
+): string[] {
+  if (Array.isArray(input)) {
+    input.forEach((item) => extractRollcallIds(item, found));
+  } else if (input && typeof input === "object") {
+    for (const [key, value] of Object.entries(input)) {
+      if (
+        key === "rollcall_id" &&
+        (typeof value === "string" || typeof value === "number")
+      ) {
+        found.add(String(value));
+      } else {
+        extractRollcallIds(value, found);
+      }
+    }
+  }
+  return [...found].slice(0, 12);
+}
+
+function Spinner({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block h-4 w-4 animate-spin border-2 border-current border-t-transparent ${className}`}
+    />
+  );
+}
+
+function Panel({
+  title,
+  aside,
+  children,
+  delay = 0,
+  className = "",
+}: {
+  title: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rise border border-line bg-panel shadow-sm ${className}`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <h2 className="text-base font-semibold text-ink">{title}</h2>
+        {aside}
+      </header>
+      <div className="space-y-4 px-5 pb-5">{children}</div>
+    </section>
+  );
+}
+
+function StatusBanner({
+  kind,
+  children,
+}: {
+  kind: "success" | "error";
+  children: React.ReactNode;
+}) {
+  const styles =
+    kind === "success"
+      ? "bg-success/10 text-success"
+      : "bg-danger/10 text-danger";
+  return (
+    <div
+      className={`rise px-4 py-3 text-sm ${styles}`}
+      role={kind === "error" ? "alert" : "status"}
+      aria-live={kind === "error" ? "assertive" : "polite"}
+      aria-atomic="true"
+    >
+      {children}
+    </div>
+  );
+}
+
+function RawJson({ data }: { data: unknown }) {
+  return (
+    <details className="group border border-line bg-panel2">
+      <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-2.5 text-xs font-medium text-muted transition-colors hover:text-ink">
+        原始回應
+        <span className="transition-transform group-open:rotate-90">▸</span>
+      </summary>
+      <pre className="raw-json max-h-72 overflow-auto border-t border-line p-4 font-mono text-xs leading-relaxed text-muted">
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    </details>
+  );
+}
+
+const inputClass =
+  "w-full border border-line bg-panel px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 hover:border-muted focus:border-accent";
+
+const labelClass = "mb-1.5 block text-sm font-medium text-ink";
+
 export default function Home() {
   const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    }
-  }, [router]);
-
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loadingCourses, setLoadingCourses] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [getParams, setGetParams] = useState({
-    course_id: "",
-  });
-  const [postParams, setPostParams] = useState({
-    rollcall_id: "123",
-    lat: 25.13587249634042,
-    lng: 121.47020801301439,
-  });
-  const [getResponse, setGetResponse] = useState(null);
-  const [postResponse, setPostResponse] = useState(null);
-  const [position, setPosition] = useState<[number, number]>([
-    25.13587249634042, 121.47020801301439,
-  ]);
-
-  const fetchCourses = async () => {
+  const credentials = useMemo(() => {
+    if (typeof window === "undefined") return null;
     const token = localStorage.getItem("token");
     const userID = localStorage.getItem("userID");
-    if (!token || !userID) {
-      localStorage.clear();
-      router.push("/login");
-      return;
-    }
+    if (!token || !userID) return null;
+    return { token, userID };
+  }, []);
 
+  const ready = credentials !== null;
+  const userId = credentials?.userID ?? "";
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [courseId, setCourseId] = useState("");
+  const [getLoading, setGetLoading] = useState(false);
+  const [getResponse, setGetResponse] = useState<ApiData | null>(null);
+  const [getError, setGetError] = useState<string | null>(null);
+
+  const [rollcallId, setRollcallId] = useState("");
+  const [position, setPosition] =
+    useState<[number, number]>(DEFAULT_POSITION);
+  const [latInput, setLatInput] = useState(String(DEFAULT_POSITION[0]));
+  const [lngInput, setLngInput] = useState(String(DEFAULT_POSITION[1]));
+  const [postLoading, setPostLoading] = useState(false);
+  const [postResponse, setPostResponse] = useState<ApiData | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const fetchCourses = useCallback(async () => {
+    if (!credentials) return;
     setLoadingCourses(true);
+    setCoursesError(null);
     try {
       const query = new URLSearchParams({
-        user_id: userID,
-        accessToken: token,
-      }).toString();
+        user_id: credentials.userID,
+        accessToken: credentials.token,
+      });
       const res = await fetch(`/api/getCourses?${query}`);
       const data = await res.json();
-
       if (data.status) {
         setCourses(data.courses || []);
       } else {
-        localStorage.clear();
-        alert("Session invalid: " + data.message);
-        router.push("/login");
+        setCourses([]);
+        setCoursesError(data.message || "登入狀態已失效。");
       }
-    } catch (error) {
-      localStorage.clear();
-      alert("Session expired");
-      router.push("/login");
+    } catch {
+      setCoursesError("網路錯誤，無法載入課程。");
     } finally {
       setLoadingCourses(false);
     }
-  };
+  }, [credentials]);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    const id = setTimeout(() => {
+      void fetchCourses();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [fetchCourses]);
+
+  const filteredCourses = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return courses;
+    return courses.filter(
+      (course) =>
+        course.course_name.toLowerCase().includes(q) ||
+        course.instructor_name.toLowerCase().includes(q) ||
+        String(course.course_id).includes(q),
+    );
+  }, [courses, searchTerm]);
+
+  const selectedCourse = courses.find(
+    (course) => String(course.course_id) === courseId,
+  );
+
+  const rollcallIds = useMemo(
+    () => (getResponse ? extractRollcallIds(getResponse) : []),
+    [getResponse],
+  );
 
   const handleGetRollcall = async () => {
-    const token = localStorage.getItem("token");
-    const userID = localStorage.getItem("userID");
-    if (!token || !userID) {
-      localStorage.clear();
-      router.push("/login");
-      return;
+    const creds = credentials;
+    if (!creds || !courseId) return;
+    setGetLoading(true);
+    setGetError(null);
+    setGetResponse(null);
+    setPostResponse(null);
+    setPostError(null);
+    try {
+      const query = new URLSearchParams({
+        course_id: courseId,
+        user_id: creds.userID,
+        accessToken: creds.token,
+      });
+      const data = await (await fetch(`/api/getRollcall?${query}`)).json();
+      setGetResponse(data);
+      const ids = extractRollcallIds(data);
+      if (ids.length > 0) setRollcallId(ids[0]);
+    } catch {
+      setGetError("取得點名時發生網路錯誤。");
+    } finally {
+      setGetLoading(false);
     }
-    const query = new URLSearchParams({
-      ...getParams,
-      user_id: userID,
-      accessToken: token,
-    }).toString();
-    const res = await fetch(`/api/getRollcall?${query}`);
-    const data = await res.json();
-    setGetResponse(data);
   };
 
   const handleMakeRollcall = async () => {
-    const token = localStorage.getItem("token");
-    const userID = localStorage.getItem("userID");
-    if (!token || !userID) {
-      localStorage.clear();
-      router.push("/login");
-      return;
+    const creds = credentials;
+    if (!creds || !rollcallId) return;
+    setPostLoading(true);
+    setPostError(null);
+    setPostResponse(null);
+    try {
+      const res = await fetch("/api/makeRollcall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: creds.userID,
+          accessToken: creds.token,
+          rollcall_id: rollcallId,
+          device: "WEB",
+          lat: position[0],
+          lng: position[1],
+        }),
+      });
+      setPostResponse(await res.json());
+    } catch {
+      setPostError("簽到時發生網路錯誤。");
+    } finally {
+      setPostLoading(false);
     }
-    const res = await fetch("/api/makeRollcall", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...postParams,
-        user_id: userID,
-        accessToken: token,
-        device: "WEB",
-      }),
-    });
-    const data = await res.json();
-    setPostResponse(data);
   };
 
-  const handleMapClick = (latlng: { lat: number; lng: number }) => {
-    setPostParams((prev) => ({ ...prev, lat: latlng.lat, lng: latlng.lng }));
-    setPosition([latlng.lat, latlng.lng]);
+  const handleMapClick = ({ lat, lng }: { lat: number; lng: number }) => {
+    setPosition([lat, lng]);
+    setLatInput(lat.toFixed(6));
+    setLngInput(lng.toFixed(6));
   };
+
+  const handleCoordInput = (axis: "lat" | "lng", raw: string) => {
+    if (axis === "lat") setLatInput(raw);
+    else setLngInput(raw);
+    const latRaw = (axis === "lat" ? raw : latInput).trim();
+    const lngRaw = (axis === "lng" ? raw : lngInput).trim();
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (
+      latRaw !== "" &&
+      lngRaw !== "" &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    ) {
+      setPosition([lat, lng]);
+    }
+  };
+
+  const coordsValid = useMemo(() => {
+    const lat = Number(latInput.trim());
+    const lng = Number(lngInput.trim());
+    return (
+      latInput.trim() !== "" &&
+      lngInput.trim() !== "" &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    );
+  }, [latInput, lngInput]);
+
+  const copyCoords = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `${position[0]}, ${position[1]}`,
+      );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userID");
+    localStorage.removeItem("user");
+    router.replace("/login");
+  };
+
+  if (!ready) {
+    return (
+      <div className="grid min-h-screen place-items-center">
+        <span className="text-sm text-muted">載入中…</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen p-8 bg-white dark:bg-gray-900">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Rollcall App
-        </h1>
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("userID");
-            localStorage.removeItem("user");
-            setCourses([]);
-            setGetParams({ course_id: "" });
-            setPostParams({
-              rollcall_id: "123",
-              lat: 25.13587249634042,
-              lng: 121.47020801301439,
-            });
-            router.push("/login");
-          }}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
-        >
-          Logout
-        </button>
-      </div>
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-50 border-b border-line bg-panel/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <span className="text-base font-semibold text-ink">點名小幫手</span>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm text-muted sm:block">
+              {userId}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-danger/40 hover:text-danger"
+            >
+              <PowerIcon className="h-3.5 w-3.5" />
+              登出
+            </button>
+          </div>
+        </div>
+      </header>
 
-        <div className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-
-        <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
-          Your Courses
-        </h2>
-        {loadingCourses ? (
-          <p className="text-gray-600 dark:text-gray-300">Loading courses...</p>
-        ) : (
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 mb-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            {courses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {courses
-                  .filter((course) =>
-                    course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    course.instructor_name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((course) => (
-                    <div
-                      key={course.course_id}
-                      className={`p-4 border rounded-lg cursor-pointer transition duration-200 ${
-                        getParams.course_id === course.course_id
-                          ? "border-green-500 bg-green-50 dark:bg-green-900"
-                          : "border-gray-300 dark:border-gray-600 hover:border-red-300"
-                      }`}
-                      onClick={() =>
-                        setGetParams((prev) => ({
-                          ...prev,
-                          course_id: course.course_id,
-                        }))
-                      }
-                    >
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {course.course_name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {course.instructor_name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ID: {course.course_id}
-                      </p>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-
-              <p className="text-gray-600 dark:text-gray-300">
-                No courses found.
-              </p>
-            )}
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <Panel
+            title="您的課程"
+            delay={0}
+            aside={
               <button
                 onClick={fetchCourses}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg mr-4"
+                disabled={loadingCourses}
+                className="flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent disabled:opacity-50"
               >
-                Refresh Courses
+                <RefreshIcon
+                  className={`h-4 w-4 ${loadingCourses ? "animate-spin" : ""}`}
+                />
+                重新整理
               </button>
-
-          </div>
-        )}
-
-        <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          Get Rollcall
-        </h3>
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Course ID (or select from courses above)"
-            value={getParams.course_id}
-            onChange={(e) =>
-              setGetParams((prev) => ({ ...prev, course_id: e.target.value }))
             }
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-          <button
-            onClick={handleGetRollcall}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md"
           >
-            Get Rollcall
-          </button>
+            <div className="relative">
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                placeholder="搜尋課程…"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`${inputClass} pl-9`}
+              />
+            </div>
 
-        {getResponse && (
-          <pre className="mt-4 p-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-auto max-h-96 text-sm">
-            {JSON.stringify(getResponse, null, 2)}
-          </pre>
-        )}
-      </div>
+            {coursesError && (
+              <StatusBanner kind="error">
+                <p>無法載入課程 — {coursesError}</p>
+                <button
+                  onClick={() => router.replace("/login")}
+                  className="mt-1 underline underline-offset-2 transition-colors hover:text-ink"
+                >
+                  回登入頁面
+                </button>
+              </StatusBanner>
+            )}
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <div className="max-h-[380px] space-y-2 overflow-y-auto pr-1">
+              {loadingCourses ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse border border-line px-4 py-3"
+                  >
+                    <div className="h-3.5 w-2/3 bg-line" />
+                    <div className="mt-2 h-2.5 w-1/3 bg-line" />
+                  </div>
+                ))
+              ) : filteredCourses.length > 0 ? (
+                filteredCourses.map((course) => {
+                  const active = String(course.course_id) === courseId;
+                  return (
+                    <button
+                      key={course.course_id}
+                      onClick={() => {
+                        setCourseId(String(course.course_id));
+                        setGetResponse(null);
+                        setGetError(null);
+                        setRollcallId("");
+                        setPostResponse(null);
+                        setPostError(null);
+                      }}
+                      className={`group w-full border px-4 py-3 text-left transition-all ${
+                        active
+                          ? "border-accent bg-accent/5"
+                          : "border-line bg-panel hover:border-accent/40 hover:bg-panel2"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-ink">
+                            {course.course_name}
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-muted">
+                            {course.instructor_name} · 編號 {course.course_id}
+                          </p>
+                        </div>
+                        <span
+                          className={`h-2 w-2 shrink-0 ${
+                            active ? "bg-accent" : "bg-line group-hover:bg-muted"
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
+                  {courses.length === 0 && !coursesError
+                    ? "沒有找到課程。"
+                    : "沒有符合搜尋的課程。"}
+                </div>
+              )}
+            </div>
 
-        <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
-          Make Rollcall
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
-          <input
-            type="text"
-            placeholder="Rollcall ID"
-            value={postParams.rollcall_id}
-            onChange={(e) =>
-              setPostParams((prev) => ({
-                ...prev,
-                rollcall_id: e.target.value,
-              }))
-            }
-            className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
+            {!loadingCourses && courses.length > 0 && (
+              <p className="text-xs text-muted">
+                共 {courses.length} 門課程，顯示 {filteredCourses.length} 門
+              </p>
+            )}
+          </Panel>
         </div>
-        <div className="mb-4">
-          <p className="text-sm mb-2 text-gray-600 dark:text-gray-300">
-            Click on the map to select location (Current:{" "}
-            {position[0].toFixed(6)}, {position[1].toFixed(6)})
-          </p>
-          <MapComponent center={position} zoom={13} onClick={handleMapClick} />
-        </div>
-          <button
-            onClick={handleMakeRollcall}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 shadow-md"
-          >
-            Make Rollcall
-          </button>
 
-        {postResponse && (
-          <pre className="mt-4 p-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-auto max-h-96 text-sm">
-            {JSON.stringify(postResponse, null, 2)}
-          </pre>
-        )}
-      </div>
+        <div className="lg:col-span-3">
+          <Panel title="點名" delay={60} className="lg:sticky lg:top-[4.5rem]">
+            {/* 步驟 1：選擇課程並取得點名 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  1
+                </span>
+                選擇課程並取得點名
+              </div>
+
+              {selectedCourse ? (
+                <div className="mb-3 flex items-center justify-between gap-3 border border-line bg-panel px-4 py-3 text-sm">
+                  <span className="truncate text-ink">
+                    {selectedCourse.course_name}
+                  </span>
+                  <span className="shrink-0 font-mono text-xs text-muted">
+                    #{selectedCourse.course_id}
+                  </span>
+                </div>
+              ) : (
+                <div className="mb-3 border border-line bg-panel px-4 py-3 text-sm text-muted">
+                  {courseId
+                    ? `使用課程編號 ${courseId}`
+                    : "請先從左側選擇課程，或輸入課程編號。"}
+                </div>
+              )}
+
+              <label className="mb-3 block">
+                <span className={labelClass}>課程編號</span>
+                <input
+                  type="text"
+                  value={courseId}
+                  onChange={(e) => {
+                    setCourseId(e.target.value);
+                    setGetResponse(null);
+                    setGetError(null);
+                    setRollcallId("");
+                    setPostResponse(null);
+                    setPostError(null);
+                  }}
+                  placeholder="例如：1412725"
+                  className={inputClass}
+                />
+              </label>
+
+              <button
+                onClick={handleGetRollcall}
+                disabled={!courseId || getLoading}
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {getLoading && <Spinner />}
+                {getLoading ? "擷取中…" : "取得點名"}
+              </button>
+            </div>
+
+            {/* 取得點名結果 */}
+            {getError && <StatusBanner kind="error">{getError}</StatusBanner>}
+
+            {getResponse && (
+              <>
+                {getResponse.status === true ? (
+                  <StatusBanner kind="success">
+                    找到進行中的點名
+                    {rollcallIds.length > 0 && ` — 編號 ${rollcallIds[0]}`}。
+                  </StatusBanner>
+                ) : (
+                  <StatusBanner kind="error">
+                    {typeof getResponse.message === "string"
+                      ? getResponse.message
+                      : "這門課程目前沒有進行中的點名。"}
+                  </StatusBanner>
+                )}
+
+                <RawJson data={getResponse} />
+              </>
+            )}
+
+            {/* 步驟 2：設定位置 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  2
+                </span>
+                設定位置
+              </div>
+
+              <MapComponent
+                center={position}
+                zoom={15}
+                position={position}
+                onClick={handleMapClick}
+                className="h-[360px] w-full"
+              />
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-xs text-muted">
+                  點擊地圖設定您的位置。
+                </p>
+                <button
+                  onClick={copyCoords}
+                  className="flex shrink-0 items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent"
+                >
+                  {copied ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-success" />
+                  ) : (
+                    <CopyIcon className="h-3.5 w-3.5" />
+                  )}
+                  {copied ? "已複製" : "複製"}
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={labelClass}>緯度</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={latInput}
+                    onChange={(e) => handleCoordInput("lat", e.target.value)}
+                    className={`${inputClass} font-mono`}
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>經度</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={lngInput}
+                    onChange={(e) => handleCoordInput("lng", e.target.value)}
+                    className={`${inputClass} font-mono`}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 步驟 3：確認點名編號並簽到 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  3
+                </span>
+                確認點名編號並簽到
+              </div>
+
+              <label className="mb-3 block">
+                <span className={labelClass}>點名編號</span>
+                <input
+                  id="rollcall-id-input"
+                  type="text"
+                  inputMode="numeric"
+                  value={rollcallId}
+                  onChange={(e) => setRollcallId(e.target.value)}
+                  placeholder={
+                    getResponse?.status === true
+                      ? "已取得進行中的點名編號"
+                      : "例如：2048265"
+                  }
+                  className={inputClass}
+                />
+              </label>
+
+              <button
+                onClick={handleMakeRollcall}
+                disabled={!rollcallId || postLoading || !coordsValid}
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {postLoading && <Spinner />}
+                {postLoading ? "簽到中…" : "簽到"}
+              </button>
+            </div>
+
+            {postError && <StatusBanner kind="error">{postError}</StatusBanner>}
+
+            {postResponse && (
+              <>
+                {postResponse.status === true ? (
+                  <StatusBanner kind="success">
+                    簽到成功
+                    {typeof postResponse.message === "string" &&
+                      ` — ${postResponse.message}`}
+                  </StatusBanner>
+                ) : (
+                  <StatusBanner kind="error">
+                    簽到失敗
+                    {typeof postResponse.message === "string" &&
+                      ` — ${postResponse.message}`}
+                  </StatusBanner>
+                )}
+                <RawJson data={postResponse} />
+              </>
+            )}
+          </Panel>
+        </div>
+      </main>
     </div>
   );
 }

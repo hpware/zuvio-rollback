@@ -1,27 +1,158 @@
 @import "tailwindcss";
-@import 'leaflet/dist/leaflet.css';
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "leaflet/dist/leaflet.css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-bg: #0c0c0c;
+  --color-panel: #141414;
+  --color-panel2: #1c1c1c;
+  --color-line: #2a2a2a;
+  --color-ink: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-accent: #cdf548;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-bg);
+  color: var(--color-ink);
   font-family: var(--font-sans), sans-serif;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Keep focus rings visible even when an ancestor clips overflow/clip-path. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+[aria-busy="true"]:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+::selection {
+  background: rgba(205, 245, 72, 0.22);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.28s ease-out both;
+}
+
+@keyframes marker-ping {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.raw-json {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+.raw-json::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.raw-json::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 0;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ---------- leaflet ---------- */
+
+.leaflet-container {
+  background: #1a1a1a;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+/* ---------- map marker ---------- */
+
+.rollcall-marker {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+.rollcall-marker span {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: 0;
+}
+.rollcall-marker__dot {
+  width: 10px;
+  height: 10px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.rollcall-marker__ring {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgba(205, 245, 72, 0.45);
+}
+.rollcall-marker__pulse {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgba(205, 245, 72, 0.35);
+  animation: marker-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -13,6 +13,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (accessToken === "demo") {
+      return Response.json({
+        status: true,
+        courses: [
+          {
+            course_id: "1412725",
+            course_name: "資料結構 Data Structures",
+            instructor_name: "王大明",
+          },
+          {
+            course_id: "1413880",
+            course_name: "作業系統 Operating Systems",
+            instructor_name: "陳建宏",
+          },
+          {
+            course_id: "1415901",
+            course_name: "線性代數 Linear Algebra",
+            instructor_name: "林美玲",
+          },
+          {
+            course_id: "1416207",
+            course_name: "計算機網路 Computer Networks",
+            instructor_name: "黃俊傑",
+          },
+        ],
+      });
+    }
+
     const req = await fetch(
       `https://irs.zuvio.com.tw/course/listStudentCurrentCourses?user_id=${userId}&accessToken=${accessToken}`,
       {
@@ -38,9 +66,10 @@ export async function GET(request: NextRequest) {
       message: "Courses fetched successfully",
       courses: res.courses || res,
     });
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Internal server error";
     return Response.json(
-      { status: false, message: e.message || "Internal server error" },
+      { status: false, message },
       { status: 500 }
     );
   }

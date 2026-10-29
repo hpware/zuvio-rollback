@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Rollcall App",
-  description: "Login and rollcall app",
+  description: "Sign in and manage your Zuvio rollcalls.",
 };
 
 export default function RootLayout({
