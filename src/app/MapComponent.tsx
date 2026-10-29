@@ -51,9 +51,9 @@ function RecenterControl({ position }: { position: [number, number] }) {
     <button
       type="button"
       onClick={() => map.flyTo(position, Math.max(map.getZoom(), 15))}
-      className="absolute right-3 top-3 z-[1000] border border-line bg-bg/85 px-3 py-1.5 font-mono text-[11px] tracking-[0.2em] text-accent backdrop-blur transition-colors hover:bg-panel2"
+      className="absolute right-3 top-3 z-[1000] rounded-md border border-line bg-white/95 px-2.5 py-1 text-xs font-medium text-ink shadow-sm transition-colors hover:bg-panel2"
     >
-      ⌖ RECENTER
+      Recenter
     </button>
   );
 }

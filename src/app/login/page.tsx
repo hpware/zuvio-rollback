@@ -31,64 +31,65 @@ export default function Login() {
         localStorage.setItem("user", data.user);
         router.push("/");
       } else {
-        setError(data.message || "ACCESS DENIED — CHECK YOUR CREDENTIALS");
+        setError(data.message || "Login failed — check your credentials.");
       }
     } catch {
-      setError("NETWORK ERROR — UPLINK FAILED");
+      setError("Network error — please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const inputClass =
+    "w-full rounded-lg border border-line bg-panel px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/15";
+
   return (
-    <div className="grid min-h-screen place-items-center px-4 py-10">
+    <div className="grid min-h-screen place-items-center px-4">
       <div className="rise w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-5 grid h-14 w-14 place-items-center border border-accent/60 bg-accent/10">
-            <CrosshairIcon className="h-7 w-7 text-accent" />
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-xl bg-accent/10">
+            <CrosshairIcon className="h-6 w-6 text-accent" />
           </div>
-          <h1 className="font-display text-2xl font-bold tracking-[0.22em] text-ink">
-            ROLLCALL<span className="text-accent">://</span>CONSOLE
-          </h1>
-          <p className="mt-2 font-mono text-[10px] tracking-[0.35em] text-muted">
-            AUTH REQUIRED · ZUVIO FIELD CLIENT
+          <h1 className="text-xl font-semibold text-ink">Rollcall</h1>
+          <p className="mt-1 text-sm text-muted">
+            Sign in with your Zuvio account
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 border border-line bg-panel p-6"
+          className="space-y-4 rounded-xl border border-line bg-panel p-6 shadow-sm"
         >
           <label className="block">
-            <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-              EMAIL
+            <span className="mb-1.5 block text-sm font-medium text-ink">
+              Email
             </span>
             <input
               type="email"
               placeholder="you@university.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/50 focus:border-accent"
+              className={inputClass}
               required
             />
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-              PASSWORD
+            <span className="mb-1.5 block text-sm font-medium text-ink">
+              Password
             </span>
             <input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/50 focus:border-accent"
+              className={inputClass}
               required
             />
           </label>
 
           {error && (
-            <div className="rise border border-danger/40 bg-danger/10 px-4 py-3 font-mono text-xs leading-relaxed text-danger">
+            <div className="rise rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
               {error}
             </div>
           )}
@@ -96,21 +97,17 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="notched flex w-full items-center justify-center gap-2.5 bg-accent px-4 py-3 font-display text-sm font-bold tracking-[0.2em] text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading && (
               <span
                 aria-hidden
-                className="inline-block h-3.5 w-3.5 animate-spin rounded-full border border-current border-t-transparent"
+                className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
               />
             )}
-            {loading ? "AUTHENTICATING…" : "AUTHENTICATE"}
+            {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-
-        <p className="mt-6 text-center font-mono text-[10px] tracking-[0.25em] text-muted/70">
-          SESSION TOKEN STORED LOCALLY ON THIS DEVICE
-        </p>
       </div>
     </div>
   );

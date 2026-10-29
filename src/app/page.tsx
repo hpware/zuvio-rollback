@@ -15,10 +15,8 @@ import {
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (
-    <div className="grid h-[380px] w-full place-items-center bg-panel2">
-      <span className="animate-pulse font-mono text-xs tracking-[0.3em] text-muted">
-        ACQUIRING MAP…
-      </span>
+    <div className="grid h-[360px] w-full place-items-center bg-panel2">
+      <span className="text-sm text-muted">Loading map…</span>
     </div>
   ),
 });
@@ -61,20 +59,18 @@ function Spinner({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`inline-block h-3.5 w-3.5 animate-spin rounded-full border border-current border-t-transparent ${className}`}
+      className={`inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ${className}`}
     />
   );
 }
 
 function Panel({
-  index,
   title,
   aside,
   children,
   delay = 0,
   className = "",
 }: {
-  index: string;
   title: string;
   aside?: React.ReactNode;
   children: React.ReactNode;
@@ -83,18 +79,11 @@ function Panel({
 }) {
   return (
     <section
-      className={`rise border border-line bg-panel ${className}`}
+      className={`rise rounded-xl border border-line bg-panel shadow-sm ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <span className="shrink-0 font-mono text-[11px] tracking-widest text-accent">
-            {index}
-          </span>
-          <h2 className="truncate whitespace-nowrap font-display text-sm font-semibold uppercase tracking-[0.18em] text-ink">
-            {title}
-          </h2>
-        </div>
+      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <h2 className="text-base font-semibold text-ink">{title}</h2>
         {aside}
       </header>
       <div className="space-y-4 p-5">{children}</div>
@@ -111,12 +100,10 @@ function StatusBanner({
 }) {
   const styles =
     kind === "success"
-      ? "border-accent/40 bg-accent/10 text-accent"
-      : "border-danger/40 bg-danger/10 text-danger";
+      ? "border-success/30 bg-success/5 text-success"
+      : "border-danger/30 bg-danger/5 text-danger";
   return (
-    <div
-      className={`rise border px-4 py-3 font-mono text-xs leading-relaxed ${styles}`}
-    >
+    <div className={`rise rounded-lg border px-4 py-3 text-sm ${styles}`}>
       {children}
     </div>
   );
@@ -124,17 +111,22 @@ function StatusBanner({
 
 function RawJson({ data }: { data: unknown }) {
   return (
-    <details className="group border border-line bg-panel2">
-      <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-2.5 font-mono text-[11px] tracking-widest text-muted transition-colors hover:text-ink">
-        RAW RESPONSE
+    <details className="group rounded-lg border border-line bg-panel2">
+      <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-2.5 text-xs font-medium text-muted transition-colors hover:text-ink">
+        Raw response
         <span className="transition-transform group-open:rotate-90">▸</span>
       </summary>
-      <pre className="raw-json max-h-72 overflow-auto border-t border-line p-4 font-mono text-[11px] leading-relaxed text-muted">
+      <pre className="raw-json max-h-72 overflow-auto border-t border-line p-4 font-mono text-xs leading-relaxed text-muted">
         {JSON.stringify(data, null, 2)}
       </pre>
     </details>
   );
 }
+
+const inputClass =
+  "w-full rounded-lg border border-line bg-panel px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/15";
+
+const labelClass = "mb-1.5 block text-sm font-medium text-ink";
 
 export default function Home() {
   const router = useRouter();
@@ -187,10 +179,10 @@ export default function Home() {
         setCourses(data.courses || []);
       } else {
         setCourses([]);
-        setCoursesError(data.message || "Session rejected by Zuvio.");
+        setCoursesError(data.message || "Your session was rejected.");
       }
     } catch {
-      setCoursesError("Network error while fetching courses.");
+      setCoursesError("Network error while loading courses.");
     } finally {
       setLoadingCourses(false);
     }
@@ -239,7 +231,7 @@ export default function Home() {
       const res = await fetch(`/api/getRollcall?${query}`);
       setGetResponse(await res.json());
     } catch {
-      setGetError("Network error while fetching rollcall.");
+      setGetError("Network error while fetching the rollcall.");
     } finally {
       setGetLoading(false);
     }
@@ -266,7 +258,7 @@ export default function Home() {
       });
       setPostResponse(await res.json());
     } catch {
-      setPostError("Network error while transmitting check-in.");
+      setPostError("Network error while checking in.");
     } finally {
       setPostLoading(false);
     }
@@ -315,64 +307,49 @@ export default function Home() {
   if (!ready) {
     return (
       <div className="grid min-h-screen place-items-center">
-        <span className="animate-pulse font-mono text-xs tracking-[0.3em] text-muted">
-          ESTABLISHING UPLINK…
-        </span>
+        <span className="text-sm text-muted">Loading…</span>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3.5">
-            <div className="grid h-9 w-9 place-items-center border border-accent/60 bg-accent/10">
-              <CrosshairIcon className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <p className="whitespace-nowrap font-display text-sm font-bold tracking-[0.22em] text-ink sm:text-base">
-                ROLLCALL<span className="text-accent">://</span>CONSOLE
-              </p>
-              <p className="font-mono text-[10px] tracking-[0.3em] text-muted">
-                ZUVIO FIELD CLIENT
-              </p>
-            </div>
+      <header className="sticky top-0 z-50 border-b border-line bg-panel/90 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <CrosshairIcon className="h-5 w-5 text-accent" />
+            <span className="text-base font-semibold text-ink">Rollcall</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 border border-line bg-panel px-3 py-1.5 sm:flex">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-              <span className="font-mono text-[11px] tracking-widest text-muted">
-                ID {userId}
-              </span>
-            </div>
+            <span className="hidden text-sm text-muted sm:block">
+              User {userId}
+            </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 border border-line px-3 py-1.5 font-mono text-[11px] tracking-widest text-muted transition-colors hover:border-danger/60 hover:text-danger"
+              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-danger/40 hover:text-danger"
             >
               <PowerIcon className="h-3.5 w-3.5" />
-              LOGOUT
+              Log out
             </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Panel
-            index="01"
             title="Courses"
             delay={0}
             aside={
               <button
                 onClick={fetchCourses}
                 disabled={loadingCourses}
-                className="flex items-center gap-2 font-mono text-[11px] tracking-widest text-muted transition-colors hover:text-accent disabled:opacity-50"
+                className="flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent disabled:opacity-50"
               >
                 <RefreshIcon
-                  className={`h-3.5 w-3.5 ${loadingCourses ? "animate-spin" : ""}`}
+                  className={`h-4 w-4 ${loadingCourses ? "animate-spin" : ""}`}
                 />
-                REFRESH
+                Refresh
               </button>
             }
           >
@@ -380,21 +357,21 @@ export default function Home() {
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
-                placeholder="FILTER BY NAME, INSTRUCTOR OR ID…"
+                placeholder="Search courses…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-line bg-panel2 py-2.5 pl-10 pr-3 font-mono text-xs tracking-wider text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent"
+                className={`${inputClass} pl-9`}
               />
             </div>
 
             {coursesError && (
               <StatusBanner kind="error">
-                <p>SESSION FAULT — {coursesError}</p>
+                <p>Couldn&apos;t load courses — {coursesError}</p>
                 <button
                   onClick={() => router.replace("/login")}
                   className="mt-1 underline underline-offset-2 transition-colors hover:text-ink"
                 >
-                  RE-AUTHENTICATE →
+                  Back to login
                 </button>
               </StatusBanner>
             )}
@@ -404,7 +381,7 @@ export default function Home() {
                 Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="animate-pulse border border-line bg-panel2 px-4 py-3"
+                    className="animate-pulse rounded-lg border border-line px-4 py-3"
                   >
                     <div className="h-3.5 w-2/3 rounded bg-line" />
                     <div className="mt-2 h-2.5 w-1/3 rounded bg-line" />
@@ -417,26 +394,24 @@ export default function Home() {
                     <button
                       key={course.course_id}
                       onClick={() => setCourseId(String(course.course_id))}
-                      className={`group w-full border px-4 py-3 text-left transition-colors ${
+                      className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
                         active
-                          ? "border-accent/60 bg-accent/[0.06]"
-                          : "border-line bg-panel2 hover:border-muted/60"
+                          ? "border-accent bg-accent/5"
+                          : "border-line bg-panel hover:border-muted/50"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate font-display text-sm font-semibold tracking-wide text-ink">
+                          <p className="truncate text-sm font-medium text-ink">
                             {course.course_name}
                           </p>
-                          <p className="mt-0.5 truncate font-mono text-[11px] text-muted">
+                          <p className="mt-0.5 truncate text-xs text-muted">
                             {course.instructor_name} · ID {course.course_id}
                           </p>
                         </div>
                         <span
-                          className={`h-2 w-2 shrink-0 rounded-full transition-colors ${
-                            active
-                              ? "bg-accent shadow-[0_0_8px_rgba(205,245,72,0.9)]"
-                              : "bg-line group-hover:bg-muted"
+                          className={`h-2 w-2 shrink-0 rounded-full ${
+                            active ? "bg-accent" : "bg-line"
                           }`}
                         />
                       </div>
@@ -444,61 +419,59 @@ export default function Home() {
                   );
                 })
               ) : (
-                <div className="border border-dashed border-line px-4 py-8 text-center font-mono text-[11px] tracking-widest text-muted">
+                <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
                   {courses.length === 0 && !coursesError
-                    ? "NO COURSES THIS SEMESTER"
-                    : "NO MATCH — CLEAR THE FILTER"}
+                    ? "No courses found."
+                    : "No courses match your search."}
                 </div>
               )}
             </div>
 
-            <p className="font-mono text-[10px] tracking-[0.25em] text-muted/70">
-              {loadingCourses
-                ? "SYNCING…"
-                : `${filteredCourses.length}/${courses.length} COURSES`}
-            </p>
+            {!loadingCourses && courses.length > 0 && (
+              <p className="text-xs text-muted">
+                {filteredCourses.length} of {courses.length} courses
+              </p>
+            )}
           </Panel>
 
-          <Panel index="02" title="Fetch Rollcall" delay={80}>
-            <div className="border border-line bg-panel2 px-4 py-3 font-mono text-xs">
+          <Panel title="Get rollcall" delay={60}>
+            <div className="rounded-lg bg-panel2 px-4 py-3 text-sm">
               {selectedCourse ? (
                 <div className="flex items-center justify-between gap-3">
                   <span className="truncate text-ink">
                     {selectedCourse.course_name}
                   </span>
-                  <span className="shrink-0 text-accent">
+                  <span className="shrink-0 font-mono text-xs text-muted">
                     #{selectedCourse.course_id}
                   </span>
                 </div>
               ) : (
-                <span className="tracking-wider text-muted">
+                <span className="text-muted">
                   {courseId
-                    ? `MANUAL TARGET #${courseId}`
-                    : "NO COURSE SELECTED — PICK ONE ABOVE"}
+                    ? `Using course #${courseId}`
+                    : "Select a course above, or enter a course ID below."}
                 </span>
               )}
             </div>
 
             <label className="block">
-              <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-                COURSE ID
-              </span>
+              <span className={labelClass}>Course ID</span>
               <input
                 type="text"
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                placeholder="OR TYPE A COURSE ID MANUALLY"
-                className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/50 focus:border-accent"
+                placeholder="e.g. 1412725"
+                className={inputClass}
               />
             </label>
 
             <button
               onClick={handleGetRollcall}
               disabled={!courseId || getLoading}
-              className="notched flex w-full items-center justify-center gap-2.5 bg-accent px-4 py-3 font-display text-sm font-bold tracking-[0.2em] text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {getLoading && <Spinner />}
-              {getLoading ? "SCANNING…" : "FETCH ACTIVE ROLLCALL"}
+              {getLoading ? "Loading…" : "Get rollcall"}
             </button>
 
             {getError && <StatusBanner kind="error">{getError}</StatusBanner>}
@@ -507,13 +480,13 @@ export default function Home() {
               <>
                 {getResponse.status === true ? (
                   <StatusBanner kind="success">
-                    SIGNAL LOCKED — ROLLCALL DATA RECEIVED.
+                    Active rollcall found.
                   </StatusBanner>
                 ) : (
                   <StatusBanner kind="error">
                     {typeof getResponse.message === "string"
                       ? getResponse.message
-                      : "NO ACTIVE ROLLCALL FOR THIS COURSE."}
+                      : "No active rollcall for this course."}
                   </StatusBanner>
                 )}
 
@@ -528,9 +501,9 @@ export default function Home() {
                             .getElementById("rollcall-id-input")
                             ?.focus();
                         }}
-                        className="border border-accent/40 bg-accent/10 px-3 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
+                        className="rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10"
                       >
-                        USE #{id} →
+                        Use #{id}
                       </button>
                     ))}
                   </div>
@@ -544,86 +517,62 @@ export default function Home() {
 
         <div className="lg:col-span-3">
           <Panel
-            index="03"
-            title="Transmit Check-In"
-            delay={160}
-            className="lg:sticky lg:top-24"
-            aside={
-              <span className="shrink-0 whitespace-nowrap font-mono text-[10px] tracking-widest text-muted sm:text-[11px]">
-                DEVICE · WEB
-              </span>
-            }
+            title="Make rollcall"
+            delay={120}
+            className="lg:sticky lg:top-[4.5rem]"
           >
-            <div className="relative border border-line">
+            <div className="overflow-hidden rounded-lg border border-line">
               <MapComponent
                 center={position}
                 zoom={15}
                 position={position}
                 onClick={handleMapClick}
-                className="h-[380px] w-full"
+                className="h-[360px] w-full"
               />
-              <div className="pointer-events-none absolute left-3 top-3 z-[1000] border border-line bg-bg/85 px-3 py-2 font-mono text-[11px] leading-relaxed text-muted backdrop-blur">
-                <div>
-                  LAT <span className="text-accent">{position[0].toFixed(6)}</span>
-                </div>
-                <div>
-                  LNG <span className="text-accent">{position[1].toFixed(6)}</span>
-                </div>
-              </div>
-              <span className="pointer-events-none absolute left-0 top-0 z-[1000] h-4 w-4 border-l-2 border-t-2 border-accent" />
-              <span className="pointer-events-none absolute right-0 top-0 z-[1000] h-4 w-4 border-r-2 border-t-2 border-accent" />
-              <span className="pointer-events-none absolute bottom-0 left-0 z-[1000] h-4 w-4 border-b-2 border-l-2 border-accent" />
-              <span className="pointer-events-none absolute bottom-0 right-0 z-[1000] h-4 w-4 border-b-2 border-r-2 border-accent" />
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[10px] tracking-[0.2em] text-muted">
-                ▸ CLICK MAP TO PLACE PIN — DRAG TO PAN
+              <p className="text-xs text-muted">
+                Click the map to set your location.
               </p>
               <button
                 onClick={copyCoords}
-                className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] tracking-[0.2em] text-muted transition-colors hover:text-accent"
+                className="flex shrink-0 items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent"
               >
                 {copied ? (
-                  <CheckIcon className="h-3.5 w-3.5 text-accent" />
+                  <CheckIcon className="h-3.5 w-3.5 text-success" />
                 ) : (
                   <CopyIcon className="h-3.5 w-3.5" />
                 )}
-                {copied ? "COPIED" : "COPY"}
+                {copied ? "Copied" : "Copy"}
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-                  LATITUDE
-                </span>
+                <span className={labelClass}>Latitude</span>
                 <input
                   type="text"
                   inputMode="decimal"
                   value={latInput}
                   onChange={(e) => handleCoordInput("lat", e.target.value)}
-                  className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-accent outline-none transition-colors focus:border-accent"
+                  className={`${inputClass} font-mono`}
                 />
               </label>
               <label className="block">
-                <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-                  LONGITUDE
-                </span>
+                <span className={labelClass}>Longitude</span>
                 <input
                   type="text"
                   inputMode="decimal"
                   value={lngInput}
                   onChange={(e) => handleCoordInput("lng", e.target.value)}
-                  className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-accent outline-none transition-colors focus:border-accent"
+                  className={`${inputClass} font-mono`}
                 />
               </label>
             </div>
 
             <label className="block">
-              <span className="mb-1.5 block font-mono text-[10px] tracking-[0.25em] text-muted">
-                ROLLCALL ID
-              </span>
+              <span className={labelClass}>Rollcall ID</span>
               <input
                 id="rollcall-id-input"
                 type="text"
@@ -631,17 +580,17 @@ export default function Home() {
                 value={rollcallId}
                 onChange={(e) => setRollcallId(e.target.value)}
                 placeholder="e.g. 2048265"
-                className="w-full border border-line bg-panel2 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/50 focus:border-accent"
+                className={inputClass}
               />
             </label>
 
             <button
               onClick={handleMakeRollcall}
               disabled={!rollcallId || postLoading}
-              className="notched flex w-full items-center justify-center gap-2.5 bg-accent px-4 py-3.5 font-display text-sm font-bold tracking-[0.2em] text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {postLoading && <Spinner />}
-              {postLoading ? "TRANSMITTING…" : "TRANSMIT CHECK-IN"}
+              {postLoading ? "Checking in…" : "Check in"}
             </button>
 
             {postError && <StatusBanner kind="error">{postError}</StatusBanner>}
@@ -650,13 +599,13 @@ export default function Home() {
               <>
                 {postResponse.status === true ? (
                   <StatusBanner kind="success">
-                    ✓ CHECK-IN CONFIRMED
+                    Check-in successful
                     {typeof postResponse.message === "string" &&
                       ` — ${postResponse.message}`}
                   </StatusBanner>
                 ) : (
                   <StatusBanner kind="error">
-                    CHECK-IN REJECTED
+                    Check-in failed
                     {typeof postResponse.message === "string" &&
                       ` — ${postResponse.message}`}
                   </StatusBanner>

@@ -4,49 +4,38 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-chakra);
 }
 
 @theme {
-  --color-bg: #060a0c;
-  --color-panel: #0b1114;
-  --color-panel2: #0f171b;
-  --color-line: #1c282d;
-  --color-ink: #e7f2ee;
-  --color-muted: #7e948f;
-  --color-accent: #cdf548;
-  --color-danger: #ff5c5c;
-  --color-warn: #ffb42c;
+  --color-bg: #f7f8fa;
+  --color-panel: #ffffff;
+  --color-panel2: #f3f4f6;
+  --color-line: #e5e7eb;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-accent: #2563eb;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans), sans-serif;
-  background-image:
-    radial-gradient(1100px 520px at 75% -10%, rgba(205, 245, 72, 0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(56, 189, 248, 0.04), transparent 55%),
-    linear-gradient(rgba(205, 245, 72, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(205, 245, 72, 0.022) 1px, transparent 1px);
-  background-size: auto, auto, 44px 44px, 44px 44px;
-  background-attachment: fixed;
 }
 
 ::selection {
-  background: rgba(205, 245, 72, 0.28);
-  color: #ffffff;
+  background: rgba(37, 99, 235, 0.15);
 }
-
-/* ---------- motion ---------- */
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -55,44 +44,31 @@ body {
 }
 
 .rise {
-  animation: rise 0.55s cubic-bezier(0.22, 0.68, 0.26, 0.99) both;
+  animation: rise 0.3s ease-out both;
 }
 
 @keyframes marker-ping {
   0% {
-    transform: scale(0.45);
-    opacity: 0.9;
+    transform: scale(0.5);
+    opacity: 0.8;
   }
   70%,
   100% {
-    transform: scale(2.4);
+    transform: scale(2.2);
     opacity: 0;
   }
 }
 
-/* ---------- details ---------- */
-
-.notched {
-  clip-path: polygon(
-    0 0,
-    calc(100% - 12px) 0,
-    100% 12px,
-    100% 100%,
-    12px 100%,
-    0 calc(100% - 12px)
-  );
-}
-
 .raw-json {
   scrollbar-width: thin;
-  scrollbar-color: #223136 transparent;
+  scrollbar-color: #d1d5db transparent;
 }
 .raw-json::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 .raw-json::-webkit-scrollbar-thumb {
-  background: #223136;
+  background: #d1d5db;
   border-radius: 9999px;
 }
 
@@ -106,45 +82,15 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* ---------- leaflet dark console theme ---------- */
+/* ---------- leaflet ---------- */
 
 .leaflet-container {
-  background: #070c0e;
-  cursor: crosshair;
-  font-family: var(--font-mono), monospace;
-}
-
-.leaflet-tile-pane {
-  filter: invert(0.94) hue-rotate(180deg) saturate(0.32) brightness(0.82)
-    contrast(1.05);
-}
-
-.leaflet-interactive {
-  cursor: pointer;
-}
-
-.leaflet-control-zoom {
-  border: 1px solid var(--color-line) !important;
-  box-shadow: none !important;
-}
-.leaflet-control-zoom a {
-  background: rgba(11, 17, 20, 0.92) !important;
-  color: var(--color-accent) !important;
-  border-bottom: 1px solid var(--color-line) !important;
-  backdrop-filter: blur(6px);
-}
-.leaflet-control-zoom a:hover {
-  background: #122025 !important;
+  background: #eef1f4;
+  font-family: var(--font-sans), sans-serif;
 }
 
 .leaflet-control-attribution {
-  background: rgba(6, 10, 12, 0.8) !important;
-  color: #566b66 !important;
   font-size: 10px;
-  backdrop-filter: blur(6px);
-}
-.leaflet-control-attribution a {
-  color: #7e948f !important;
 }
 
 /* ---------- map marker (divIcon, no image assets) ---------- */
@@ -164,18 +110,16 @@ input[type="number"] {
   width: 10px;
   height: 10px;
   background: var(--color-accent);
-  box-shadow:
-    0 0 2px rgba(205, 245, 72, 1),
-    0 0 12px rgba(205, 245, 72, 0.9);
+  box-shadow: 0 0 0 2px #ffffff, 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 .rollcall-marker__ring {
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(205, 245, 72, 0.8);
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgba(37, 99, 235, 0.5);
 }
 .rollcall-marker__pulse {
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(205, 245, 72, 0.6);
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgba(37, 99, 235, 0.4);
   animation: marker-ping 1.9s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
