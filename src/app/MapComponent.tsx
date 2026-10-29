@@ -1,57 +1,83 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+export interface MapClick {
+  lat: number;
+  lng: number;
+}
 
 interface MapComponentProps {
   center: [number, number];
-  zoom: number;
-  onClick: (latlng: { lat: number; lng: number }) => void;
+  zoom?: number;
   position?: [number, number];
-  children?: React.ReactNode;
+  onClick?: (latlng: MapClick) => void;
+  className?: string;
 }
 
-function LocationMarker({
+/** Custom CSS marker — no image assets, so it never 404s under Next.js. */
+const markerIcon = L.divIcon({
+  className: "rollcall-marker",
+  html: '<span class="rollcall-marker__pulse"></span><span class="rollcall-marker__ring"></span><span class="rollcall-marker__dot"></span>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
+function ClickHandler({
   onClick,
 }: {
-  onClick: (latlng: { lat: number; lng: number }) => void;
+  onClick: (latlng: MapClick) => void;
 }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
-      onClick(e.latlng);
+      onClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+      map.panTo(e.latlng);
     },
   });
   return null;
 }
 
+function RecenterControl({ position }: { position: [number, number] }) {
+  const map = useMap();
+  return (
+    <button
+      type="button"
+      onClick={() => map.flyTo(position, Math.max(map.getZoom(), 15))}
+      className="absolute right-3 top-3 z-[1000] border border-line bg-bg/85 px-3 py-1.5 font-mono text-[11px] tracking-[0.2em] text-accent backdrop-blur transition-colors hover:bg-panel2"
+    >
+      ⌖ RECENTER
+    </button>
+  );
+}
+
 export default function MapComponent({
   center,
-  zoom,
-  onClick,
+  zoom = 13,
   position,
-  children,
+  onClick,
+  className = "h-[380px] w-full",
 }: MapComponentProps) {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{
-        height: "400px",
-        width: "100%",
-        borderRadius: "0.5rem",
-        boxShadow:
-          "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-      }}
-    >
+    <MapContainer center={center} zoom={zoom} className={className}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <LocationMarker onClick={onClick} />
-      {position && <Marker position={position} />}
-      <Marker position={center} />
-      {children}
+      {onClick && <ClickHandler onClick={onClick} />}
+      {position && (
+        <>
+          <Marker position={position} icon={markerIcon} />
+          <RecenterControl position={position} />
+        </>
+      )}
     </MapContainer>
   );
 }
