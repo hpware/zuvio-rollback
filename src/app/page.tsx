@@ -179,7 +179,7 @@ export default function Home() {
         setCoursesError(data.message || "登入狀態已失效。");
       }
     } catch {
-      setCoursesError("載入課程時發生網路錯誤。");
+      setCoursesError("網路錯誤，無法載入課程。");
     } finally {
       setLoadingCourses(false);
     }
@@ -330,7 +330,7 @@ export default function Home() {
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="lg:col-span-2">
           <Panel
             title="您的課程"
             delay={0}
@@ -387,7 +387,14 @@ export default function Home() {
                   return (
                     <button
                       key={course.course_id}
-                      onClick={() => setCourseId(String(course.course_id))}
+                      onClick={() => {
+                        setCourseId(String(course.course_id));
+                        setGetResponse(null);
+                        setGetError(null);
+                        setRollcallId("");
+                        setPostResponse(null);
+                        setPostError(null);
+                      }}
                       className={`group w-full border px-4 py-3 text-left transition-all ${
                         active
                           ? "border-accent bg-accent/5"
@@ -427,11 +434,21 @@ export default function Home() {
               </p>
             )}
           </Panel>
+        </div>
 
-          <Panel title="取得點名" delay={60}>
-            <div className="border border-line bg-panel2 px-4 py-3 text-sm">
+        <div className="lg:col-span-3">
+          <Panel title="點名" delay={60} className="lg:sticky lg:top-[4.5rem]">
+            {/* 步驟 1：選擇課程並取得點名 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  1
+                </span>
+                選擇課程並取得點名
+              </div>
+
               {selectedCourse ? (
-                <div className="flex items-center justify-between gap-3">
+                <div className="mb-3 flex items-center justify-between gap-3 border border-line bg-panel px-4 py-3 text-sm">
                   <span className="truncate text-ink">
                     {selectedCourse.course_name}
                   </span>
@@ -440,34 +457,42 @@ export default function Home() {
                   </span>
                 </div>
               ) : (
-                <span className="text-muted">
+                <div className="mb-3 border border-line bg-panel px-4 py-3 text-sm text-muted">
                   {courseId
                     ? `使用課程編號 ${courseId}`
-                    : "請先選擇課程，或在下方輸入課程編號。"}
-                </span>
+                    : "請先從左側選擇課程，或輸入課程編號。"}
+                </div>
               )}
+
+              <label className="mb-3 block">
+                <span className={labelClass}>課程編號</span>
+                <input
+                  type="text"
+                  value={courseId}
+                  onChange={(e) => {
+                    setCourseId(e.target.value);
+                    setGetResponse(null);
+                    setGetError(null);
+                    setRollcallId("");
+                    setPostResponse(null);
+                    setPostError(null);
+                  }}
+                  placeholder="例如：1412725"
+                  className={inputClass}
+                />
+              </label>
+
+              <button
+                onClick={handleGetRollcall}
+                disabled={!courseId || getLoading}
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {getLoading && <Spinner />}
+                {getLoading ? "擷取中…" : "取得點名"}
+              </button>
             </div>
 
-            <label className="block">
-              <span className={labelClass}>課程編號</span>
-              <input
-                type="text"
-                value={courseId}
-                onChange={(e) => setCourseId(e.target.value)}
-                placeholder="例如：1412725"
-                className={inputClass}
-              />
-            </label>
-
-            <button
-              onClick={handleGetRollcall}
-              disabled={!courseId || getLoading}
-              className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {getLoading && <Spinner />}
-              {getLoading ? "擷取中…" : "取得點名"}
-            </button>
-
+            {/* 取得點名結果 */}
             {getError && <StatusBanner kind="error">{getError}</StatusBanner>}
 
             {getResponse && (
@@ -486,102 +511,123 @@ export default function Home() {
 
                 {rollcallIds.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {rollcallIds.map((id) => (
-                      <button
-                        key={id}
-                        onClick={() => {
-                          setRollcallId(id);
-                          document
-                            .getElementById("rollcall-id-input")
-                            ?.focus();
-                        }}
-                        className="border border-accent/30 bg-accent/5 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10"
-                      >
-                        使用 #{id}
-                      </button>
-                    ))}
+                    {rollcallIds.map((id) => {
+                      const active = rollcallId === id;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => {
+                            setRollcallId(id);
+                            document
+                              .getElementById("rollcall-id-input")
+                              ?.focus();
+                          }}
+                          className={`border px-3 py-1 text-xs font-medium transition-colors ${
+                            active
+                              ? "border-accent bg-accent text-white"
+                              : "border-accent/30 bg-accent/5 text-accent hover:bg-accent/10"
+                          }`}
+                        >
+                          使用 #{id}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
                 <RawJson data={getResponse} />
               </>
             )}
-          </Panel>
-        </div>
 
-        <div className="lg:col-span-3">
-          <Panel
-            title="進行點名"
-            delay={120}
-            className="lg:sticky lg:top-[4.5rem]"
-          >
-            <MapComponent
-              center={position}
-              zoom={15}
-              position={position}
-              onClick={handleMapClick}
-              className="h-[360px] w-full"
-            />
+            {/* 步驟 2：設定位置 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  2
+                </span>
+                設定位置
+              </div>
 
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <p className="text-xs text-muted">點擊地圖設定您的位置。</p>
+              <MapComponent
+                center={position}
+                zoom={15}
+                position={position}
+                onClick={handleMapClick}
+                className="h-[360px] w-full"
+              />
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-xs text-muted">
+                  點擊地圖設定您的位置。
+                </p>
+                <button
+                  onClick={copyCoords}
+                  className="flex shrink-0 items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent"
+                >
+                  {copied ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-success" />
+                  ) : (
+                    <CopyIcon className="h-3.5 w-3.5" />
+                  )}
+                  {copied ? "已複製" : "複製"}
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={labelClass}>緯度</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={latInput}
+                    onChange={(e) => handleCoordInput("lat", e.target.value)}
+                    className={`${inputClass} font-mono`}
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>經度</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={lngInput}
+                    onChange={(e) => handleCoordInput("lng", e.target.value)}
+                    className={`${inputClass} font-mono`}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 步驟 3：輸入點名編號並簽到 */}
+            <div className="border border-line bg-panel2 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                  3
+                </span>
+                輸入點名編號並簽到
+              </div>
+
+              <label className="mb-3 block">
+                <span className={labelClass}>點名編號</span>
+                <input
+                  id="rollcall-id-input"
+                  type="text"
+                  inputMode="numeric"
+                  value={rollcallId}
+                  onChange={(e) => setRollcallId(e.target.value)}
+                  placeholder="例如：2048265"
+                  className={inputClass}
+                />
+              </label>
+
               <button
-                onClick={copyCoords}
-                className="flex shrink-0 items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent"
+                onClick={handleMakeRollcall}
+                disabled={!rollcallId || postLoading}
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {copied ? (
-                  <CheckIcon className="h-3.5 w-3.5 text-success" />
-                ) : (
-                  <CopyIcon className="h-3.5 w-3.5" />
-                )}
-                {copied ? "已複製" : "複製"}
+                {postLoading && <Spinner />}
+                {postLoading ? "簽到中…" : "簽到"}
               </button>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className={labelClass}>緯度</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={latInput}
-                  onChange={(e) => handleCoordInput("lat", e.target.value)}
-                  className={`${inputClass} font-mono`}
-                />
-              </label>
-              <label className="block">
-                <span className={labelClass}>經度</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={lngInput}
-                  onChange={(e) => handleCoordInput("lng", e.target.value)}
-                  className={`${inputClass} font-mono`}
-                />
-              </label>
-            </div>
-
-            <label className="block">
-              <span className={labelClass}>點名編號</span>
-              <input
-                id="rollcall-id-input"
-                type="text"
-                inputMode="numeric"
-                value={rollcallId}
-                onChange={(e) => setRollcallId(e.target.value)}
-                placeholder="例如：2048265"
-                className={inputClass}
-              />
-            </label>
-
-            <button
-              onClick={handleMakeRollcall}
-              disabled={!rollcallId || postLoading}
-              className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {postLoading && <Spinner />}
-              {postLoading ? "簽到中…" : "簽到"}
-            </button>
 
             {postError && <StatusBanner kind="error">{postError}</StatusBanner>}
 
