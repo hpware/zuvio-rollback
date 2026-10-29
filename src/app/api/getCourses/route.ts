@@ -66,9 +66,10 @@ export async function GET(request: NextRequest) {
       message: "Courses fetched successfully",
       courses: res.courses || res,
     });
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Internal server error";
     return Response.json(
-      { status: false, message: e.message || "Internal server error" },
+      { status: false, message },
       { status: 500 }
     );
   }

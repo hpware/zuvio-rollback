@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -60,7 +65,7 @@ function Spinner({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ${className}`}
+      className={`inline-block h-4 w-4 animate-spin border-2 border-current border-t-transparent ${className}`}
     />
   );
 }
@@ -106,8 +111,8 @@ function StatusBanner({
   return (
     <div
       className={`rise px-4 py-3 text-sm ${styles}`}
-      role="status"
-      aria-live="polite"
+      role={kind === "error" ? "alert" : "status"}
+      aria-live={kind === "error" ? "assertive" : "polite"}
       aria-atomic="true"
     >
       {children}
@@ -136,8 +141,16 @@ const labelClass = "mb-1.5 block text-sm font-medium text-ink";
 
 export default function Home() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [userId, setUserId] = useState("");
+  const credentials = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const token = localStorage.getItem("token");
+    const userID = localStorage.getItem("userID");
+    if (!token || !userID) return null;
+    return { token, userID };
+  }, []);
+
+  const ready = credentials !== null;
+  const userId = credentials?.userID ?? "";
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -159,25 +172,14 @@ export default function Home() {
   const [postError, setPostError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const getCredentials = useCallback(() => {
-    const token = localStorage.getItem("token");
-    const userID = localStorage.getItem("userID");
-    if (!token || !userID) {
-      router.replace("/login");
-      return null;
-    }
-    return { token, userID };
-  }, [router]);
-
   const fetchCourses = useCallback(async () => {
-    const creds = getCredentials();
-    if (!creds) return;
+    if (!credentials) return;
     setLoadingCourses(true);
     setCoursesError(null);
     try {
       const query = new URLSearchParams({
-        user_id: creds.userID,
-        accessToken: creds.token,
+        user_id: credentials.userID,
+        accessToken: credentials.token,
       });
       const res = await fetch(`/api/getCourses?${query}`);
       const data = await res.json();
@@ -192,15 +194,14 @@ export default function Home() {
     } finally {
       setLoadingCourses(false);
     }
-  }, [getCredentials]);
+  }, [credentials]);
 
   useEffect(() => {
-    const creds = getCredentials();
-    if (!creds) return;
-    setUserId(creds.userID);
-    setReady(true);
-    fetchCourses();
-  }, [getCredentials, fetchCourses]);
+    const id = setTimeout(() => {
+      void fetchCourses();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [fetchCourses]);
 
   const filteredCourses = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -223,7 +224,7 @@ export default function Home() {
   );
 
   const handleGetRollcall = async () => {
-    const creds = getCredentials();
+    const creds = credentials;
     if (!creds || !courseId) return;
     setGetLoading(true);
     setGetError(null);
@@ -248,7 +249,7 @@ export default function Home() {
   };
 
   const handleMakeRollcall = async () => {
-    const creds = getCredentials();
+    const creds = credentials;
     if (!creds || !rollcallId) return;
     setPostLoading(true);
     setPostError(null);
@@ -441,7 +442,7 @@ export default function Home() {
                           </p>
                         </div>
                         <span
-                          className={`h-2 w-2 shrink-0 rounded-full ${
+                          className={`h-2 w-2 shrink-0 ${
                             active ? "bg-accent" : "bg-line group-hover:bg-muted"
                           }`}
                         />

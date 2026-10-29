@@ -7,19 +7,19 @@
 }
 
 @theme {
-  --color-bg: #f4f4f5;
-  --color-panel: #ffffff;
-  --color-panel2: #f9fafb;
-  --color-line: #e4e4e7;
-  --color-ink: #18181b;
-  --color-muted: #71717a;
-  --color-accent: #2563eb;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
+  --color-bg: #0c0c0c;
+  --color-panel: #141414;
+  --color-panel2: #1c1c1c;
+  --color-line: #2a2a2a;
+  --color-ink: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-accent: #cdf548;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -51,7 +51,7 @@ textarea:focus-visible,
 }
 
 ::selection {
-  background: rgba(196, 155, 106, 0.22);
+  background: rgba(205, 245, 72, 0.22);
 }
 
 @keyframes rise {
@@ -83,15 +83,15 @@ textarea:focus-visible,
 
 .raw-json {
   scrollbar-width: thin;
-  scrollbar-color: #dcd6cf transparent;
+  scrollbar-color: #3f3f46 transparent;
 }
 .raw-json::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 .raw-json::-webkit-scrollbar-thumb {
-  background: #dcd6cf;
-  border-radius: 9999px;
+  background: #3f3f46;
+  border-radius: 0;
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -107,7 +107,7 @@ input[type="number"] {
 /* ---------- leaflet ---------- */
 
 .leaflet-container {
-  background: #eef1f4;
+  background: #1a1a1a;
   font-family: var(--font-sans), sans-serif;
 }
 
@@ -126,23 +126,23 @@ input[type="number"] {
   position: absolute;
   inset: 0;
   margin: auto;
-  border-radius: 9999px;
+  border-radius: 0;
 }
 .rollcall-marker__dot {
   width: 10px;
   height: 10px;
   background: var(--color-accent);
-  box-shadow: 0 0 0 2px #ffffff, 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 .rollcall-marker__ring {
   width: 22px;
   height: 22px;
-  border: 1.5px solid rgba(37, 99, 235, 0.45);
+  border: 1.5px solid rgba(205, 245, 72, 0.45);
 }
 .rollcall-marker__pulse {
   width: 22px;
   height: 22px;
-  border: 1.5px solid rgba(37, 99, 235, 0.35);
+  border: 1.5px solid rgba(205, 245, 72, 0.35);
   animation: marker-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 

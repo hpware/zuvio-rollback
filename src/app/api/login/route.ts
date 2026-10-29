@@ -31,9 +31,10 @@ export async function POST(request: NextRequest) {
       user: res.name,
       has_course: res.has_course,
     });
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Internal server error";
     return Response.json(
-      { status: false, message: e.message },
+      { status: false, message },
       {
         status: 500,
       },
