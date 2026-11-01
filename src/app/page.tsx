@@ -149,6 +149,10 @@ export default function Home() {
     return { token, userID };
   }, []);
 
+  useEffect(() => {
+    if (!credentials) router.replace("/login");
+  }, [credentials, router]);
+
   const ready = credentials !== null;
   const userId = credentials?.userID ?? "";
 
