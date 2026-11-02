@@ -99,7 +99,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading && (
               <span

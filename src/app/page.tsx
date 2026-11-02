@@ -476,7 +476,7 @@ export default function Home() {
             {/* 步驟 1：選擇課程並取得點名 */}
             <div className="border border-line bg-panel2 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-black">
                   1
                 </span>
                 選擇課程並取得點名
@@ -520,7 +520,7 @@ export default function Home() {
               <button
                 onClick={handleGetRollcall}
                 disabled={!courseId || getLoading}
-                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {getLoading && <Spinner />}
                 {getLoading ? "擷取中…" : "取得點名"}
@@ -552,7 +552,7 @@ export default function Home() {
             {/* 步驟 2：設定位置 */}
             <div className="border border-line bg-panel2 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-black">
                   2
                 </span>
                 設定位置
@@ -610,7 +610,7 @@ export default function Home() {
             {/* 步驟 3：確認點名編號並簽到 */}
             <div className="border border-line bg-panel2 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-white">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-xs text-black">
                   3
                 </span>
                 確認點名編號並簽到
@@ -636,7 +636,7 @@ export default function Home() {
               <button
                 onClick={handleMakeRollcall}
                 disabled={!rollcallId || postLoading || !coordsValid}
-                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {postLoading && <Spinner />}
                 {postLoading ? "簽到中…" : "簽到"}
